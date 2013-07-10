@@ -89,9 +89,9 @@ class AuthorMenu(CMSAttachMenu):
                                     reverse('zinnia_author_list'),
                                     'authors'))
         for author in Author.published.all():
-            nodes.append(NavigationNode(author.username,
+            nodes.append(NavigationNode(getattr(author, author.USERNAME_FIELD),
                                         reverse('zinnia_author_detail',
-                                                args=[author.username]),
+                                                args=[getattr(author, author.USERNAME_FIELD)]),
                                         author.pk, 'authors'))
         return nodes
 
