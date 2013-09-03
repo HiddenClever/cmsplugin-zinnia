@@ -1,23 +1,18 @@
 """Models of Zinnia CMS Plugins"""
 from django.conf import settings
 from django.db import models
-from django.db.models.signals import post_save
-from django.db.models.signals import post_delete
 from django.utils.translation import ugettext_lazy as _
 
 from tagging.models import Tag
 from cms.models import CMSPlugin
 from menus.menu_pool import menu_pool
 
-from zinnia.models import Entry
-from zinnia.models import Category
-
 from cmsplugin_zinnia.settings import PLUGINS_TEMPLATES
 
 TEMPLATES = [
-    ('cmsplugin_zinnia/entry_list.html', _('Entry list (default)')),
-    ('cmsplugin_zinnia/entry_detail.html', _('Entry detailed')),
-    ('cmsplugin_zinnia/entry_slider.html', _('Entry slider'))] \
+    ('cmsplugin_zinnia/"zinnia.Entry"_list.html', _('"zinnia.Entry" list (default)')),
+    ('cmsplugin_zinnia/"zinnia.Entry"_detail.html', _('"zinnia.Entry" detailed')),
+    ('cmsplugin_zinnia/"zinnia.Entry"_slider.html', _('"zinnia.Entry" slider'))] \
     + PLUGINS_TEMPLATES
 
 
@@ -25,7 +20,7 @@ class LatestEntriesPlugin(CMSPlugin):
     """CMS Plugin for displaying latest entries"""
 
     categories = models.ManyToManyField(
-        Category, verbose_name=_('categories'),
+        "zinnia.Category", verbose_name=_('categories'),
         blank=True, null=True)
     subcategories = models.BooleanField(
         _('include subcategories'), default=True,
@@ -63,7 +58,7 @@ class SelectedEntriesPlugin(CMSPlugin):
     """CMS Plugin for displaying custom entries"""
 
     entries = models.ManyToManyField(
-        Entry, verbose_name=_('entries'))
+        "zinnia.Entry", verbose_name=_('entries'))
     template_to_render = models.CharField(
         _('template'), blank=True,
         max_length=250, choices=TEMPLATES,
@@ -138,15 +133,3 @@ class CalendarEntriesPlugin(CMSPlugin):
             name = '%s: %s/%s' % (name, self.year, self.month)
         return '%s' % name
 
-
-def invalidate_menu_cache(sender, **kwargs):
-    """Signal receiver to invalidate the menu_pool
-    cache when an entry is posted"""
-    menu_pool.clear()
-
-post_save.connect(
-    invalidate_menu_cache, sender=Entry,
-    dispatch_uid='zinnia.entry.postsave.invalidate_menu_cache')
-post_delete.connect(
-    invalidate_menu_cache, sender=Entry,
-    dispatch_uid='zinnia.entry.postdelete.invalidate_menu_cache')
